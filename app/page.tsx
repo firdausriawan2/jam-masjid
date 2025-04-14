@@ -1,23 +1,86 @@
+'use client';
+
 import Clock from './components/Clock';
 import Countdown from './components/Countdown';
 import Image from 'next/image';
+import { useEffect, useState } from 'react';
+
+interface PrayerTime {
+  name: string;
+  time: string;
+}
+
+const prayerTimes: PrayerTime[] = [
+  { name: 'SUBUH', time: '04:31' },
+  { name: 'SYURUQ', time: '05:50' },
+  { name: 'DZUHUR', time: '11:55' },
+  { name: 'ASHAR', time: '15:14' },
+  { name: 'MAGRIB', time: '17:55' },
+  { name: 'ISYA', time: '18:26' }
+];
 
 export default function Home() {
-  // Function to determine next prayer time
-  const getNextPrayer = () => {
-    const now = new Date();
-    const currentTime = now.getHours() * 60 + now.getMinutes();
-    
-    const prayerTimes = [
-      { name: 'SUBUH', time: '04:31', minutes: 4 * 60 + 31 },
-      { name: 'SYURUQ', time: '05:50', minutes: 5 * 60 + 50 },
-      { name: 'DZUHUR', time: '11:55', minutes: 11 * 60 + 55 },
-      { name: 'ASHAR', time: '15:14', minutes: 15 * 60 + 14 },
-      { name: 'MAGRIB', time: '17:55', minutes: 17 * 60 + 55 },
-      { name: 'ISYA', time: '19:07', minutes: 19 * 60 + 7 }
-    ];
+  const [mounted, setMounted] = useState(false);
 
-    const nextPrayer = prayerTimes.find(prayer => prayer.minutes > currentTime) || prayerTimes[0];
+  // Handle prayer time check and navigation
+  const handlePrayerTime = (matchingPrayer: PrayerTime) => {
+    try {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('currentPrayer', JSON.stringify({
+          name: matchingPrayer.name,
+          time: matchingPrayer.time
+        }));
+        window.location.href = '/prayer';
+      }
+    } catch (error) {
+      console.error('Error handling prayer time:', error);
+    }
+  };
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    const checkPrayerTime = () => {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const currentTime = `${hours}:${minutes}`;
+
+      // Check if current time matches any prayer time
+      const matchingPrayer = prayerTimes.find(prayer => prayer.time === currentTime);
+      
+      if (matchingPrayer) {
+        console.log(`Waktu sholat ${matchingPrayer.name} telah tiba:`, currentTime);
+        handlePrayerTime(matchingPrayer);
+      }
+    };
+
+    // Check every second
+    const timer = setInterval(checkPrayerTime, 1000);
+
+    return () => clearInterval(timer);
+  }, [mounted]);
+
+  const getNextPrayer = () => {
+    if (!mounted) return { name: '', time: '' };
+
+    const now = new Date();
+    const currentTimeMinutes = now.getHours() * 60 + now.getMinutes();
+    
+    const prayerTimesInMinutes = prayerTimes.map(prayer => {
+      const [hours, minutes] = prayer.time.split(':').map(Number);
+      return {
+        name: prayer.name,
+        time: prayer.time,
+        minutes: hours * 60 + minutes
+      };
+    });
+
+    const nextPrayer = prayerTimesInMinutes.find(prayer => prayer.minutes > currentTimeMinutes) || prayerTimesInMinutes[0];
     return { name: nextPrayer.name, time: nextPrayer.time };
   };
 
@@ -50,14 +113,14 @@ export default function Home() {
               <h3 className="text-lg font-medium mb-4 text-slate-500">Muazzin</h3>
               <div className="bg-slate-50 rounded-lg p-4 border border-slate-100">
                 <p className="text-xl font-semibold text-emerald-600">Ust. Ahmad</p>
-                <p className="text-sm text-slate-500 mt-1">Selampanjang - Riau</p>
+                <p className="text-sm text-slate-500 mt-1">Selatpanjang - Riau</p>
               </div>
             </div>
             <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-300">
               <h3 className="text-lg font-medium mb-4 text-slate-500">Imam</h3>
               <div className="bg-slate-50 rounded-lg p-4 border border-slate-100">
                 <p className="text-xl font-semibold text-emerald-600">Ust. Abdullah</p>
-                <p className="text-sm text-slate-500 mt-1">Selampanjang - Riau</p>
+                <p className="text-sm text-slate-500 mt-1">Selatpanjang - Riau</p>
               </div>
             </div>
             <Countdown nextPrayerTime={nextPrayer.time} nextPrayerName={nextPrayer.name} />
@@ -80,14 +143,7 @@ export default function Home() {
         {/* Prayer Times */}
         <div className="mt-8">
           <div className="grid grid-cols-6 gap-4">
-            {[
-              { name: 'SUBUH', time: '04:31' },
-              { name: 'SYURUQ', time: '05:50' },
-              { name: 'DZUHUR', time: '11:55' },
-              { name: 'ASHAR', time: '15:14' },
-              { name: 'MAGRIB', time: '17:55' },
-              { name: 'ISYA', time: '19:07' }
-            ].map((prayer) => (
+            {prayerTimes.map((prayer) => (
               <div 
                 key={prayer.name} 
                 className={`${
