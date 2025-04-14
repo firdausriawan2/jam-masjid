@@ -87,88 +87,113 @@ export default function Home() {
   const nextPrayer = getNextPrayer();
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 text-slate-600">
+    <main className="h-screen w-screen overflow-hidden bg-emerald-900 flex flex-col">
       {/* Header Bar */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
-        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <h2 className="text-lg">Senin, 06 November 2023</h2>
-            <span className="text-slate-300">|</span>
-            <h2 className="text-lg">22 Rabiul Akhir, 1445</h2>
+      <div className="bg-emerald-800/50 border-b border-emerald-700">
+        <div className="container mx-auto py-4 px-8 flex items-center justify-between">
+          {/* Left - Date */}
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
+              <h2 className="text-2xl font-medium text-white">Senin, 06 November 2023</h2>
+            </div>
+            <h2 className="text-lg text-emerald-300 ml-3.5">22 Rabiul Akhir, 1445</h2>
           </div>
-          <div className="flex items-center gap-6">
-            <h1 className="text-3xl font-bold text-right font-arabic text-emerald-600">
+
+          {/* Center - Title */}
+          <div className="absolute left-1/2 top-4 -translate-x-1/2 text-center">
+            <h1 className="text-6xl font-bold font-arabic text-white mb-1 drop-shadow-glow">
               ساعة المسجد
             </h1>
+            <div className="text-sm tracking-[0.2em] text-emerald-300 font-medium">
+              SISTEM INFORMASI MASJID
+            </div>
+          </div>
+
+          {/* Right - Clock */}
+          <div className="bg-emerald-800/50 backdrop-blur px-6 py-3 rounded-xl border border-emerald-600/30">
             <Clock />
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-6 py-8">
-        <div className="grid grid-cols-8 gap-6">
-          {/* Left Side - Muadzin & Imam Info */}
-          <div className="col-span-3 space-y-4">
-            <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-300">
-              <h3 className="text-lg font-medium mb-4 text-slate-500">Muazzin</h3>
-              <div className="bg-slate-50 rounded-lg p-4 border border-slate-100">
-                <p className="text-xl font-semibold text-emerald-600">Ust. Ahmad</p>
-                <p className="text-sm text-slate-500 mt-1">Selatpanjang - Riau</p>
-              </div>
+      {/* Main Content */}
+      <div className="flex-1 container mx-auto p-8 grid grid-cols-[1fr_1.618fr] gap-8">
+        {/* Left Panel */}
+        <div className="space-y-4">
+          <div className="bg-emerald-800/30 backdrop-blur-sm rounded-xl p-5 border border-emerald-700/30">
+            <h3 className="text-lg font-medium mb-3 text-emerald-300 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Muazzin
+            </h3>
+            <div className="bg-emerald-800/30 rounded-lg p-4 border border-emerald-700/30">
+              <p className="text-2xl font-semibold text-white">Ust. Ahmad</p>
+              <p className="text-emerald-300">Selatpanjang - Riau</p>
             </div>
-            <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 hover:shadow-md transition-shadow duration-300">
-              <h3 className="text-lg font-medium mb-4 text-slate-500">Imam</h3>
-              <div className="bg-slate-50 rounded-lg p-4 border border-slate-100">
-                <p className="text-xl font-semibold text-emerald-600">Ust. Abdullah</p>
-                <p className="text-sm text-slate-500 mt-1">Selatpanjang - Riau</p>
-              </div>
-            </div>
-            <Countdown nextPrayerTime={nextPrayer.time} nextPrayerName={nextPrayer.name} />
           </div>
 
-          {/* Center - Makkah Image */}
-          <div className="col-span-5">
-            <div className="rounded-xl overflow-hidden shadow-md border border-slate-200 aspect-[1.618/1] hover:shadow-lg transition-shadow duration-300">
-              <Image 
-                src="/makkah.jpg" 
-                alt="Makkah Live" 
-                width={1200} 
-                height={742} 
-                className="w-full h-full object-cover"
-              />
+          <div className="bg-emerald-800/30 backdrop-blur-sm rounded-xl p-5 border border-emerald-700/30">
+            <h3 className="text-lg font-medium mb-3 text-emerald-300 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Imam
+            </h3>
+            <div className="bg-emerald-800/30 rounded-lg p-4 border border-emerald-700/30">
+              <p className="text-2xl font-semibold text-white">Ust. Abdullah</p>
+              <p className="text-emerald-300">Selatpanjang - Riau</p>
             </div>
+          </div>
+
+          <div className="bg-emerald-800/30 backdrop-blur-sm rounded-xl p-5 border border-emerald-700/30">
+            <Countdown nextPrayerTime={nextPrayer.time} nextPrayerName={nextPrayer.name} />
           </div>
         </div>
 
-        {/* Prayer Times */}
-        <div className="mt-8">
-          <div className="grid grid-cols-6 gap-4">
-            {prayerTimes.map((prayer) => (
-              <div 
-                key={prayer.name} 
-                className={`${
-                  prayer.name === nextPrayer.name 
-                    ? 'bg-emerald-50 border-emerald-200 shadow-md' 
-                    : 'bg-white border-slate-200'
-                } rounded-xl p-5 text-center border transition-all duration-300 hover:shadow-sm`}
-              >
-                <h3 className={`text-base font-medium mb-2 ${
-                  prayer.name === nextPrayer.name 
-                    ? 'text-emerald-600' 
-                    : 'text-slate-500'
-                }`}>
-                  {prayer.name}
-                </h3>
-                <p className={`text-3xl font-mono font-bold ${
-                  prayer.name === nextPrayer.name
-                    ? 'text-emerald-600'
-                    : 'text-slate-600'
-                }`}>
-                  {prayer.time}
-                </p>
-              </div>
-            ))}
+        {/* Makkah Image */}
+        <div className="relative rounded-xl overflow-hidden border border-emerald-700/30">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10"></div>
+          <Image 
+            src="/makkah.jpg" 
+            alt="Makkah Live" 
+            width={1200} 
+            height={742} 
+            className="w-full h-full object-cover"
+            priority
+          />
+          <div className="absolute bottom-0 left-0 right-0 p-6 text-white z-20 bg-gradient-to-t from-black/60 to-transparent">
+            <p className="text-xl font-medium">Masjidil Haram</p>
+            <p className="text-emerald-200">Live from Makkah</p>
           </div>
+        </div>
+      </div>
+
+      {/* Prayer Times */}
+      <div className="container mx-auto px-8 pb-8">
+        <div className="grid grid-cols-6 gap-4">
+          {prayerTimes.map((prayer) => (
+            <div 
+              key={prayer.name} 
+              className={`${
+                prayer.name === nextPrayer.name 
+                  ? 'bg-emerald-600/40 border-emerald-500 shadow-glow' 
+                  : 'bg-emerald-800/30 border-emerald-700/30 hover:bg-emerald-700/40'
+              } rounded-xl p-4 text-center border backdrop-blur-sm transition-all duration-300`}
+            >
+              <h3 className={`text-base font-medium mb-2 ${
+                prayer.name === nextPrayer.name 
+                  ? 'text-emerald-300' 
+                  : 'text-emerald-400'
+              }`}>
+                {prayer.name}
+              </h3>
+              <p className={`text-2xl lg:text-3xl font-mono font-bold ${
+                prayer.name === nextPrayer.name
+                  ? 'text-white'
+                  : 'text-emerald-100'
+              }`}>
+                {prayer.time}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </main>
