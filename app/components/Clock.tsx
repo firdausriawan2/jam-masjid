@@ -24,7 +24,7 @@ export default function Clock() {
 
   return (
     <div className="text-right">
-      <h1 className="text-4xl font-mono font-bold tracking-wider text-emerald-600">
+      <h1 className="text-2xl md:text-3xl lg:text-4xl font-mono font-bold tracking-[0.2em] text-[#00FF9D]">
         {format(time, 'HH:mm:ss')}
       </h1>
     </div>

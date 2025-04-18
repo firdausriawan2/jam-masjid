@@ -61,7 +61,7 @@ export default function PrayerPage() {
       prayerName={prayerInfo.name}
       prayerTime={prayerInfo.time}
       muadzin={prayerInfo.muadzin}
-      adzanDuration={5} // 1 menit untuk adzan
+      adzanDuration={60} // 1 menit untuk adzan | hitungan detik
       iqomahDuration={300} // 5 menit untuk iqomah
     />
   );

@@ -37,13 +37,18 @@ export default function Countdown({ nextPrayerTime, nextPrayerName }: CountdownP
   }, [nextPrayerTime]);
 
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 text-center">
-      <h3 className="text-lg font-medium text-slate-500 mb-2">
-        Menuju Waktu {nextPrayerName}
-      </h3>
-      <p className="text-4xl font-mono font-bold text-emerald-600 tracking-wider">
-        {timeLeft}
-      </p>
+    <div className="text-center">
+      <div className="flex items-center justify-center gap-2 mb-2">
+        <div className="w-2 h-2 rounded-full bg-[#00FF9D] animate-pulse"></div>
+        <h3 className="text-sm md:text-base font-medium text-[#E6D5C9]">
+          Menuju Waktu <span className="font-semibold">{nextPrayerName}</span>
+        </h3>
+      </div>
+      <div className="bg-[#1F2A24]/80 rounded-lg py-3 px-2 border border-[#E6D5C9]/20 shadow-inner shadow-black/20">
+        <p className="text-xl md:text-2xl lg:text-3xl font-mono font-bold text-[#00FF9D] tracking-[0.15em] drop-shadow-[0_0_2px_rgba(0,255,157,0.5)]">
+          {timeLeft}
+        </p>
+      </div>
     </div>
   );
 } 
