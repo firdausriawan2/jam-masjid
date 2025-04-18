@@ -4,7 +4,23 @@
 
 export interface City {
   id: string;
-  name: string;
+  lokasi: string;
+}
+
+interface MyQuranCityResponse {
+  status: boolean;
+  data: Array<{
+    id: string;
+    lokasi: string;
+  }>;
+}
+
+interface MyQuranSingleCityResponse {
+  status: boolean;
+  data: {
+    id: string;
+    lokasi: string;
+  };
 }
 
 export interface PrayerTime {
@@ -37,13 +53,40 @@ export class PrayerTimeService {
     return PrayerTimeService.instance;
   }
 
+  public async searchCities(query: string): Promise<City[]> {
+    try {
+      const response = await fetch(`https://api.myquran.com/v2/sholat/kota/cari/${query}`);
+      const data = await response.json() as MyQuranCityResponse;
+      
+      if (data.status && Array.isArray(data.data)) {
+        return data.data.map((city) => ({
+          id: city.id,
+          lokasi: city.lokasi
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error('Error searching cities:', error);
+      return [];
+    }
+  }
+
   public async getCityById(id: string): Promise<City> {
-    // Untuk sementara kita hardcode untuk Jakarta
-    // Nanti bisa diganti dengan call API ke MyQuran
-    return {
-      id: id,
-      name: 'Jakarta'
-    };
+    try {
+      const response = await fetch(`https://api.myquran.com/v2/sholat/kota/id/${id}`);
+      const data = await response.json() as MyQuranSingleCityResponse;
+      
+      if (data.status && data.data) {
+        return {
+          id: data.data.id,
+          lokasi: data.data.lokasi
+        };
+      }
+      throw new Error('City not found');
+    } catch (error) {
+      console.error('Error getting city:', error);
+      throw error;
+    }
   }
 
   public async getCurrentCityInfo(): Promise<City> {
@@ -176,7 +219,7 @@ export class PrayerTimeService {
       if (data.status) {
         return data.data.map((city: { id: string; lokasi: string }) => ({
           id: city.id,
-          name: city.lokasi
+          lokasi: city.lokasi
         }));
       }
       

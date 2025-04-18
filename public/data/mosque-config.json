@@ -1,8 +1,8 @@
 {
     "mosque": {
-        "name": "Masjid AL-Ihsan",
-        "location": "Jl. Contoh No. 123",
-        "cityCode": "1301"
+        "name": "Masjid AL-Hidayah",
+        "location": "JL.Mr Nasroen",
+        "cityCode": "0315"
     },
     "settings": {
         "theme": "light",
@@ -13,7 +13,7 @@
                 "description": "Kajian Kitab Riyadhus Shalihin - Bab Keutamaan Sabar",
                 "ustadz": "Ustadz Ahmad Firdaus",
                 "schedule": "Setiap Senin Ba'da Magrib",
-                "isActive": true
+                "isActive": false
             },
             {
                 "id": 2,
@@ -21,7 +21,7 @@
                 "description": "Kajian Tafsir Al-Quran - Surat Al-Kahfi",
                 "ustadz": "Ustadz Muhammad Hafiz",
                 "schedule": "Setiap Ahad Ba'da Subuh",
-                "isActive": true
+                "isActive": false
             },
             {
                 "id": 3,
@@ -38,13 +38,21 @@
                 "ustadz": "Ustadzah Aisyah",
                 "schedule": "Setiap Sabtu 09:00",
                 "isActive": false
+            },
+            {
+                "text": "Nobis similique et e",
+                "description": "Et ipsum obcaecati e",
+                "ustadz": "Asperiores dignissim",
+                "schedule": "Est quam est possimu",
+                "isActive": true,
+                "id": "1745018986458"
             }
         ],
         "prayerTimeAdjustments": {
             "fajr": 0,
-            "dhuhr": 2,
+            "dhuhr": 0,
             "asr": 0,
-            "maghrib": 2,
+            "maghrib": 0,
             "isha": 0
         }
     }

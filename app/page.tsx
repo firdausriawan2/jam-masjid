@@ -1,35 +1,33 @@
 'use client';
 
-import Clock from './components/Clock';
-import Countdown from './components/Countdown';
-import Image from 'next/image';
-import { useEffect, useState, useRef } from 'react';
-import { PrayerTimeService, PrayerTime } from './services/PrayerTimeService';
+import { useEffect, useState } from 'react';
 import { configService } from './services/ConfigService';
+import { PrayerTimeService } from './services/PrayerTimeService';
+import { useKajian } from './hooks/useKajian';
+import Countdown from './components/Countdown';
+import Clock from './components/Clock';
+import Image from 'next/image';
+import { useRef } from 'react';
+
+interface PrayerTime {
+  name: string;
+  time: string;
+}
+
+interface City {
+  id: string;
+  lokasi: string;
+}
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
-  // State untuk melacak waktu shalat yang baru saja dipicu
   const [recentlyTriggered, setRecentlyTriggered] = useState<string[]>([]);
-  // Referensi untuk timer interval
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  // State untuk waktu shalat dari API
   const [prayerTimes, setPrayerTimes] = useState<PrayerTime[]>([]);
-  // State untuk waktu shalat berikutnya
-  const [nextPrayer, setNextPrayer] = useState<{ name: string; time: string }>({ name: '', time: '' });
-  // State untuk info kota
-  const [cityInfo, setCityInfo] = useState<{ id: string; name: string }>({ id: '1301', name: 'Jakarta' });
-  // State untuk loading
+  const [nextPrayer, setNextPrayer] = useState<PrayerTime>({ name: '', time: '' });
+  const [cityInfo, setCityInfo] = useState<City>({ id: '1301', lokasi: 'Jakarta' });
   const [isLoading, setIsLoading] = useState(true);
-  
-  const [announcements, setAnnouncements] = useState<Array<{
-    id: number;
-    text: string;
-    isActive: boolean;
-    description: string;
-    ustadz: string;
-    schedule: string;
-  }>>([]);
+  const { announcements, loadAnnouncements } = useKajian();
 
   // Fungsi untuk sinkronisasi waktu - bisa diganti dengan panggilan ke server waktu
   const synchronizeTime = () => {
@@ -39,7 +37,7 @@ export default function Home() {
   };
 
   // Handle prayer time check and navigation
-  const handlePrayerTime = (matchingPrayer: PrayerTime) => {
+  const handlePrayerTime = (matchingPrayer: PrayerTime): void => {
     try {
       // Simpan status ke localStorage untuk persistensi jika tab ditutup/refresh
       if (typeof window !== 'undefined') {
@@ -115,33 +113,32 @@ export default function Home() {
     return () => clearInterval(midnightUpdate);
   }, []);
 
-  // Load data masjid dari JSON
+  // Load data masjid dan kajian
   useEffect(() => {
     const loadMosqueData = async () => {
       try {
-        const activeAnnouncements = await configService.getAnnouncements();
-        setAnnouncements(activeAnnouncements);
-        
-        // Update cityInfo dari konfigurasi
-        const config = await configService.getConfig();
+        const config = await configService;
+        const configData = await config.getConfig();
         const prayerService = PrayerTimeService.getInstance();
-        const cityData = await prayerService.getCityById(config.mosque.cityCode);
+        const cityData = await prayerService.getCityById(configData.mosque.cityCode);
         setCityInfo({ 
-          id: config.mosque.cityCode, 
-          name: cityData.name || 'Jakarta' // Default value jika tidak ada nama kota
+          id: configData.mosque.cityCode, 
+          lokasi: cityData.lokasi || 'Jakarta'
         });
+        
+        // Load kajian data
+        await loadAnnouncements();
       } catch (error) {
         console.error('Error loading mosque data:', error);
-        // Set default value jika terjadi error
         setCityInfo({ 
           id: '1301', 
-          name: 'Jakarta' 
+          lokasi: 'Jakarta' 
         });
       }
     };
     
     loadMosqueData();
-  }, []);
+  }, [loadAnnouncements]);
 
   // Penanganan waktu shalat utama
   useEffect(() => {
@@ -218,11 +215,11 @@ export default function Home() {
           console.log(`Waktu sholat ${prayer.name} telah tiba:`, currentTime);
           
           // Tambahkan ke daftar yang baru dipicu
-          setRecentlyTriggered(prev => [...prev, prayer.name]);
+          setRecentlyTriggered((prev: string[]) => [...prev, prayer.name]);
           
           // Hapus dari daftar yang baru dipicu setelah 5 menit
           setTimeout(() => {
-            setRecentlyTriggered(prev => prev.filter(name => name !== prayer.name));
+            setRecentlyTriggered((prev: string[]) => prev.filter(name => name !== prayer.name));
           }, 5 * 60 * 1000);
           
           handlePrayerTime(prayer);
@@ -274,7 +271,7 @@ export default function Home() {
               <div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-[#E6D5C9] animate-pulse"></div>
               <h2 className="text-lg md:text-xl lg:text-2xl font-medium text-[#E6D5C9]">{formatDate()}</h2>
             </div>
-            <h2 className="text-sm md:text-base lg:text-lg text-[#E6D5C9]/70 ml-3">{cityInfo.name}</h2>
+            <h2 className="text-sm md:text-base lg:text-lg text-[#E6D5C9]/70 ml-3">{cityInfo.lokasi}</h2>
           </div>
 
           {/* Center - Title - Absolute positioning untuk memastikan posisi yang konsisten */}
@@ -321,7 +318,7 @@ export default function Home() {
 
               <div className="bg-[#1F2A24]/80 backdrop-blur-sm rounded-lg p-3 border border-[#E6D5C9]/10 flex-1 flex flex-col justify-between">
                 {/* Countdown Section */}
-                <Countdown nextPrayerTime={nextPrayer.time} nextPrayerName={nextPrayer.name} />
+            <Countdown nextPrayerTime={nextPrayer.time} nextPrayerName={nextPrayer.name} />
                 
                 {/* Info Masjid Section */}
                 <div className="mt-3 border-t border-[#E6D5C9]/10 pt-3">
@@ -358,7 +355,7 @@ export default function Home() {
                     ))}
                   </div>
                 </div>
-              </div>
+          </div>
         </div>
 
             {/* Makkah Image - Menggunakan relative dan overflow hidden */}
