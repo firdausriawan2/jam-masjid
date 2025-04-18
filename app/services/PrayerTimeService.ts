@@ -15,14 +15,6 @@ interface MyQuranCityResponse {
   }>;
 }
 
-interface MyQuranSingleCityResponse {
-  status: boolean;
-  data: {
-    id: string;
-    lokasi: string;
-  };
-}
-
 export interface PrayerTime {
   name: string;
   time: string;
@@ -73,19 +65,47 @@ export class PrayerTimeService {
 
   public async getCityById(id: string): Promise<City> {
     try {
-      const response = await fetch(`https://api.myquran.com/v2/sholat/kota/id/${id}`);
-      const data = await response.json() as MyQuranSingleCityResponse;
-      
-      if (data.status && data.data) {
-        return {
-          id: data.data.id,
-          lokasi: data.data.lokasi
-        };
+      // Coba gunakan cache terlebih dahulu jika ada
+      const cachedData = localStorage.getItem(`city_${id}`);
+      if (cachedData) {
+        const city = JSON.parse(cachedData);
+        return city;
       }
-      throw new Error('City not found');
+
+      // Jika tidak ada cache, coba ambil dari API
+      const response = await fetch(`https://api.myquran.com/v2/sholat/kota/cari/${id}`);
+      const data = await response.json();
+      
+      if (data.status && Array.isArray(data.data)) {
+        // Cari kota yang ID-nya cocok
+        const city = data.data.find((c: { id: string }) => c.id === id);
+        if (city) {
+          // Simpan ke cache
+          localStorage.setItem(`city_${id}`, JSON.stringify({
+            id: city.id,
+            lokasi: city.lokasi
+          }));
+          
+          return {
+            id: city.id,
+            lokasi: city.lokasi
+          };
+        }
+      }
+
+      // Jika kota tidak ditemukan, gunakan data default
+      const defaultCity = {
+        id: id,
+        lokasi: "Kota Default"
+      };
+      return defaultCity;
     } catch (error) {
       console.error('Error getting city:', error);
-      throw error;
+      // Kembalikan data default jika terjadi error
+      return {
+        id: id,
+        lokasi: "Kota Default"
+      };
     }
   }
 
@@ -147,6 +167,15 @@ export class PrayerTimeService {
       const now = new Date();
       const dateString = now.toISOString().split('T')[0].replace(/-/g, '/');
       
+      // Coba ambil dari cache terlebih dahulu
+      const cachedTimes = localStorage.getItem(`prayer_times_${this.cityId}_${dateString}`);
+      if (cachedTimes) {
+        const data = JSON.parse(cachedTimes);
+        this.prayerTimes = data.times;
+        this.lastUpdated = new Date(data.lastUpdated);
+        return;
+      }
+
       // Fetch data untuk hari ini menggunakan API v2
       const response = await fetch(
         `https://api.myquran.com/v2/sholat/jadwal/${this.cityId}/${dateString}`
@@ -164,7 +193,12 @@ export class PrayerTimeService {
         }));
         
         this.lastUpdated = now;
-        this.saveToLocalStorage();
+
+        // Simpan ke cache
+        localStorage.setItem(`prayer_times_${this.cityId}_${dateString}`, JSON.stringify({
+          times: this.prayerTimes,
+          lastUpdated: now.toISOString()
+        }));
         
         console.log('Prayer times updated:', this.prayerTimes);
       } else {
@@ -172,9 +206,13 @@ export class PrayerTimeService {
       }
     } catch (error) {
       console.error('Error fetching prayer times:', error);
-      // Gunakan data yang ada di localStorage jika ada
+      // Gunakan data default jika terjadi error
       if (this.prayerTimes.length === 0) {
-        this.loadFromLocalStorage();
+        this.prayerTimes = this.prayerNames.map(prayer => ({
+          name: prayer.name,
+          time: '00:00'
+        }));
+        this.lastUpdated = new Date();
       }
     }
   }
