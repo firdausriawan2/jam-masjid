@@ -1,0 +1,51 @@
+{
+    "mosque": {
+        "name": "Masjid AL-Ihsan",
+        "location": "Jl. Contoh No. 123",
+        "cityCode": "1301"
+    },
+    "settings": {
+        "theme": "light",
+        "announcements": [
+            {
+                "id": 1,
+                "text": "Kajian Ba'da Magrib",
+                "description": "Kajian Kitab Riyadhus Shalihin - Bab Keutamaan Sabar",
+                "ustadz": "Ustadz Ahmad Firdaus",
+                "schedule": "Setiap Senin Ba'da Magrib",
+                "isActive": true
+            },
+            {
+                "id": 2,
+                "text": "Kajian Subuh",
+                "description": "Kajian Tafsir Al-Quran - Surat Al-Kahfi",
+                "ustadz": "Ustadz Muhammad Hafiz",
+                "schedule": "Setiap Ahad Ba'da Subuh",
+                "isActive": true
+            },
+            {
+                "id": 3,
+                "text": "Tahsin Al-Quran",
+                "description": "Belajar membaca Al-Quran dengan tajwid yang benar",
+                "ustadz": "Ustadz Abdul Rahman",
+                "schedule": "Setiap Rabu Ba'da Isya",
+                "isActive": false
+            },
+            {
+                "id": 4,
+                "text": "Kajian Muslimah",
+                "description": "Kajian Fiqih Wanita",
+                "ustadz": "Ustadzah Aisyah",
+                "schedule": "Setiap Sabtu 09:00",
+                "isActive": false
+            }
+        ],
+        "prayerTimeAdjustments": {
+            "fajr": 0,
+            "dhuhr": 2,
+            "asr": 0,
+            "maghrib": 2,
+            "isha": 0
+        }
+    }
+}

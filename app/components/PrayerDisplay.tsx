@@ -8,6 +8,7 @@ interface PrayerDisplayProps {
   muadzin: string;
   adzanDuration: number; // dalam detik
   iqomahDuration: number; // dalam detik
+  onIqomahComplete?: () => void; // Callback opsional saat iqomah selesai
 }
 
 export default function PrayerDisplay({ 
@@ -15,7 +16,8 @@ export default function PrayerDisplay({
   prayerTime, 
   muadzin, 
   adzanDuration = 60, // default 1 menit
-  iqomahDuration = 300 // default 5 menit 
+  iqomahDuration = 300, // default 5 menit 
+  onIqomahComplete
 }: PrayerDisplayProps) {
   const [showIqomah, setShowIqomah] = useState(false);
   const [iqomahCountdown, setIqomahCountdown] = useState(iqomahDuration);
@@ -38,8 +40,17 @@ export default function PrayerDisplay({
 
     if (showIqomah && iqomahCountdown > 0) {
       countdownInterval = setInterval(() => {
-        setIqomahCountdown((prev) => prev - 1);
+        setIqomahCountdown((prev) => {
+          // Ketika iqomah mencapai 0, panggil callback onIqomahComplete jika disediakan
+          if (prev === 1 && onIqomahComplete) {
+            onIqomahComplete();
+          }
+          return prev - 1;
+        });
       }, 1000);
+    } else if (showIqomah && iqomahCountdown === 0 && onIqomahComplete) {
+      // Pastikan callback dipanggil jika countdown mencapai 0
+      onIqomahComplete();
     }
 
     return () => {
@@ -47,7 +58,7 @@ export default function PrayerDisplay({
         clearInterval(countdownInterval);
       }
     };
-  }, [showIqomah, iqomahCountdown, mounted]);
+  }, [showIqomah, iqomahCountdown, mounted, onIqomahComplete]);
 
   if (!mounted) return null;
 
