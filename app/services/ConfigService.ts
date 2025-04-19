@@ -29,6 +29,12 @@ class ConfigService {
   private async initializeConfigIfNeeded() {
     if (this.initialized) return;
     
+    // Cek apakah kode berjalan di browser
+    if (typeof window === 'undefined') {
+      this.initialized = true;
+      return;
+    }
+    
     const isInitialized = localStorage.getItem(this.CONFIG_INITIALIZED_KEY);
     if (!isInitialized) {
       try {
@@ -100,6 +106,14 @@ class ConfigService {
 
   public async loadConfig(): Promise<{mosqueData: MosqueData | null, kajianList: KajianData[]}> {
     await this.initializeConfigIfNeeded();
+    
+    // Cek apakah kode berjalan di browser
+    if (typeof window === 'undefined') {
+      return {
+        mosqueData: null,
+        kajianList: []
+      };
+    }
     
     const mosqueData = localStorage.getItem(this.MOSQUE_KEY);
     const kajianList = localStorage.getItem(this.KAJIAN_KEY);

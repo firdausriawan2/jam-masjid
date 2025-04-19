@@ -2,7 +2,7 @@
   "mosque": {
     "name": "Masjid AL-Hidayah",
     "location": "JL.Mr Nasroen",
-    "cityCode": "0405"
+    "cityCode": "1301"
   },
   "settings": {
     "theme": "light",
@@ -13,7 +13,7 @@
         "description": "Kajian Kitab Riyadhus Shalihin - Bab Keutamaan Sabar",
         "ustadz": "Ustadz Ahmad Firdaus",
         "schedule": "Setiap Senin Ba'da Magrib",
-        "isActive": true
+        "isActive": false
       },
       {
         "id": 2,
@@ -21,7 +21,7 @@
         "description": "Kajian Tafsir Al-Quran - Surat Al-Kahfi",
         "ustadz": "Ustadz Muhammad Hafiz",
         "schedule": "Setiap Ahad Ba'da Subuh",
-        "isActive": true
+        "isActive": false
       },
       {
         "id": 3,
@@ -29,7 +29,7 @@
         "description": "Belajar membaca Al-Quran dengan tajwid yang benar",
         "ustadz": "Ustadz Abdul Rahman",
         "schedule": "Setiap Rabu Ba'da Isya",
-        "isActive": true
+        "isActive": false
       },
       {
         "id": 4,
@@ -37,14 +37,14 @@
         "description": "Kajian Fiqih Wanita",
         "ustadz": "Ustadzah Aisyah",
         "schedule": "Setiap Sabtu 09:00",
-        "isActive": true
+        "isActive": false
       },
       {
         "text": "Nobis similique et e",
         "description": "Et ipsum obcaecati e",
         "ustadz": "Asperiores dignissim",
         "schedule": "Est quam est possimu",
-        "isActive": true,
+        "isActive": false,
         "id": "1745018986458"
       }
     ],
