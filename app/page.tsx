@@ -119,21 +119,23 @@ export default function Home() {
       try {
         const config = await configService;
         const configData = await config.getConfig();
+        
+        // Simpan konfigurasi ke localStorage
+        localStorage.setItem('mosque_config', JSON.stringify(configData));
+        
         const prayerService = PrayerTimeService.getInstance();
         const cityData = await prayerService.getCityById(configData.mosque.cityCode);
         setCityInfo({ 
           id: configData.mosque.cityCode, 
-          lokasi: cityData.lokasi || 'Jakarta'
+          lokasi: cityData.lokasi
         });
         
         // Load kajian data
         await loadAnnouncements();
       } catch (error) {
         console.error('Error loading mosque data:', error);
-        setCityInfo({ 
-          id: '1301', 
-          lokasi: 'Jakarta' 
-        });
+        // Jangan set default city info, biarkan error untuk ditangani
+        throw error;
       }
     };
     

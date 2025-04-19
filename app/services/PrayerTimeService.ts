@@ -15,6 +15,18 @@ interface MyQuranCityResponse {
   }>;
 }
 
+interface JadwalSholat {
+  date: string;
+  imsak: string;
+  subuh: string;
+  terbit: string;
+  dhuha: string;
+  dzuhur: string;
+  ashar: string;
+  maghrib: string;
+  isya: string;
+}
+
 export interface PrayerTime {
   name: string;
   time: string;
@@ -22,11 +34,11 @@ export interface PrayerTime {
 
 export class PrayerTimeService {
   private static instance: PrayerTimeService;
-  private cityId: string = '1301'; // Default ke Jakarta
+  private cityId: string = '0315'; // Sesuai dengan mosque-config.json
   private prayerTimes: PrayerTime[] = [];
   private lastUpdated: Date | null = null;
 
-  // Daftar waktu shalat yang akan diambil
+  // Daftar waktu shalat yang akan diambil dengan nama yang sesuai API
   private prayerNames: PrayerTime[] = [
     { name: 'Subuh', time: '' },
     { name: 'Dzuhur', time: '' },
@@ -36,7 +48,27 @@ export class PrayerTimeService {
     { name: 'Terbit', time: '' }
   ];
 
-  private constructor() {}
+  // Daftar kota statis untuk fallback
+  private static readonly CITIES: { [key: string]: City } = {
+    '0315': { id: '0315', lokasi: 'KOTA PADANGPANJANG' },
+    '0314': { id: '0314', lokasi: 'KOTA PADANG' },
+    '0316': { id: '0316', lokasi: 'KOTA PARIAMAN' }
+  };
+
+  private constructor() {
+    // Load konfigurasi kota dari localStorage jika ada
+    const config = localStorage.getItem('mosque_config');
+    if (config) {
+      try {
+        const mosqueConfig = JSON.parse(config);
+        if (mosqueConfig.mosque && mosqueConfig.mosque.cityCode) {
+          this.cityId = mosqueConfig.mosque.cityCode;
+        }
+      } catch (error) {
+        console.error('Error parsing mosque config:', error);
+      }
+    }
+  }
 
   public static getInstance(): PrayerTimeService {
     if (!PrayerTimeService.instance) {
@@ -65,47 +97,38 @@ export class PrayerTimeService {
 
   public async getCityById(id: string): Promise<City> {
     try {
-      // Coba gunakan cache terlebih dahulu jika ada
-      const cachedData = localStorage.getItem(`city_${id}`);
-      if (cachedData) {
-        const city = JSON.parse(cachedData);
-        return city;
+      // Coba ambil dari daftar statis dulu
+      if (PrayerTimeService.CITIES[id]) {
+        return PrayerTimeService.CITIES[id];
       }
 
-      // Jika tidak ada cache, coba ambil dari API
-      const response = await fetch(`https://api.myquran.com/v2/sholat/kota/cari/${id}`);
-      const data = await response.json();
-      
-      if (data.status && Array.isArray(data.data)) {
-        // Cari kota yang ID-nya cocok
-        const city = data.data.find((c: { id: string }) => c.id === id);
-        if (city) {
-          // Simpan ke cache
-          localStorage.setItem(`city_${id}`, JSON.stringify({
-            id: city.id,
-            lokasi: city.lokasi
-          }));
+      // Jika tidak ada di daftar statis, coba ambil dari API
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const response = await fetch(`https://api.myquran.com/v2/sholat/jadwal/${id}/2024/04`);
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          const data = await response.json();
           
-          return {
-            id: city.id,
-            lokasi: city.lokasi
-          };
+          if (data.status && data.data) {
+            return {
+              id: id,
+              lokasi: data.data.lokasi
+            };
+          }
+        } catch (fetchError) {
+          console.error(`Attempt ${attempt + 1} failed:`, fetchError);
+          if (attempt === 2) throw fetchError;
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
-
-      // Jika kota tidak ditemukan, gunakan data default
-      const defaultCity = {
-        id: id,
-        lokasi: "Kota Default"
-      };
-      return defaultCity;
+      throw new Error('City not found');
     } catch (error) {
       console.error('Error getting city:', error);
-      // Kembalikan data default jika terjadi error
-      return {
-        id: id,
-        lokasi: "Kota Default"
-      };
+      // Jika masih ada di daftar statis, gunakan itu
+      if (PrayerTimeService.CITIES[id]) {
+        return PrayerTimeService.CITIES[id];
+      }
+      throw error;
     }
   }
 
@@ -165,56 +188,65 @@ export class PrayerTimeService {
   private async fetchPrayerTimes(): Promise<void> {
     try {
       const now = new Date();
-      const dateString = now.toISOString().split('T')[0].replace(/-/g, '/');
-      
-      // Coba ambil dari cache terlebih dahulu
-      const cachedTimes = localStorage.getItem(`prayer_times_${this.cityId}_${dateString}`);
-      if (cachedTimes) {
-        const data = JSON.parse(cachedTimes);
-        this.prayerTimes = data.times;
-        this.lastUpdated = new Date(data.lastUpdated);
-        return;
-      }
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
 
-      // Fetch data untuk hari ini menggunakan API v2
-      const response = await fetch(
-        `https://api.myquran.com/v2/sholat/jadwal/${this.cityId}/${dateString}`
-      );
-      
-      const data = await response.json();
-      
-      if (data.status && data.data && data.data.jadwal) {
-        const jadwal = data.data.jadwal;
-        
-        // Update waktu shalat
-        this.prayerTimes = this.prayerNames.map(prayer => ({
-          name: prayer.name,
-          time: jadwal[prayer.name.toLowerCase()] || ''
-        }));
-        
-        this.lastUpdated = now;
-
-        // Simpan ke cache
-        localStorage.setItem(`prayer_times_${this.cityId}_${dateString}`, JSON.stringify({
-          times: this.prayerTimes,
-          lastUpdated: now.toISOString()
-        }));
-        
-        console.log('Prayer times updated:', this.prayerTimes);
-      } else {
-        throw new Error('Invalid response format');
+      // Retry mechanism for fetching prayer times
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const response = await fetch(
+            `https://api.myquran.com/v2/sholat/jadwal/${this.cityId}/${year}/${month}`
+          );
+          
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+          const data = await response.json();
+          
+          if (data.status && data.data && data.data.jadwal) {
+            const today = now.getDate();
+            const jadwal = data.data.jadwal.find((j: JadwalSholat) => {
+              const jadwalDate = new Date(j.date).getDate();
+              return jadwalDate === today;
+            });
+            
+            if (!jadwal) throw new Error('Jadwal not found for today');
+            
+            // Update waktu shalat dengan mapping yang benar
+            this.prayerTimes = this.prayerNames.map(prayer => {
+              const apiName = this.getApiPrayerName(prayer.name);
+              return {
+                name: prayer.name,
+                time: jadwal[apiName as keyof JadwalSholat] || ''
+              };
+            });
+            
+            this.lastUpdated = now;
+            this.saveToLocalStorage();
+            return;
+          }
+        } catch (fetchError) {
+          console.error(`Attempt ${attempt + 1} failed:`, fetchError);
+          if (attempt === 2) throw fetchError;
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       }
+      throw new Error('Failed to fetch prayer times after 3 attempts');
     } catch (error) {
       console.error('Error fetching prayer times:', error);
-      // Gunakan data default jika terjadi error
-      if (this.prayerTimes.length === 0) {
-        this.prayerTimes = this.prayerNames.map(prayer => ({
-          name: prayer.name,
-          time: '00:00'
-        }));
-        this.lastUpdated = new Date();
-      }
+      throw error;
     }
+  }
+
+  // Helper untuk mendapatkan nama waktu shalat yang sesuai dengan API
+  private getApiPrayerName(prayerName: string): string {
+    const mapping: { [key: string]: string } = {
+      'Subuh': 'subuh',
+      'Dzuhur': 'dzuhur',
+      'Ashar': 'ashar',
+      'Maghrib': 'maghrib',
+      'Isya': 'isya',
+      'Terbit': 'terbit'
+    };
+    return mapping[prayerName] || prayerName.toLowerCase();
   }
 
   private saveToLocalStorage(): void {
