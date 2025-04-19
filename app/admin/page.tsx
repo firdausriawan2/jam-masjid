@@ -9,8 +9,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useConfig } from '../hooks/useConfig';
 import { PrayerTimeService } from '../services/PrayerTimeService';
 import { MosqueData, KajianData } from '../types/config';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 
 interface City {
   id: string;
@@ -26,7 +24,6 @@ interface KajianForm {
 }
 
 export default function AdminPage() {
-  const pathname = usePathname();
   const { mosqueInfo, announcements, loading, updateMosqueInfo, addKajian, toggleKajianStatus } = useConfig();
   const [activeTab, setActiveTab] = useState('info');
   const [newKajian, setNewKajian] = useState<KajianForm>({
