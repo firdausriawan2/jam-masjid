@@ -2,7 +2,14 @@
   "mosque": {
     "name": "Masjid AL-Hidayah",
     "location": "JL.Mr Nasroen",
-    "cityCode": "1301"
+    "cityCode": "1301",
+    "liveStream": {
+      "title": "Masjidil Haram",
+      "description": "Live from Makkah",
+      "autoplay": true,
+      "muted": true,
+      "url": ""
+    }
   },
   "settings": {
     "theme": "light",

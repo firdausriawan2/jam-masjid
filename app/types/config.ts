@@ -3,6 +3,8 @@ export interface MosqueData {
   location: string;
   cityCode: string;
   about: string;
+  liveStreamUrl?: string;
+  liveStream?: LiveStreamSettings;
 }
 
 export interface KajianData {
@@ -75,4 +77,12 @@ export interface PrayerTimeAdjustment {
   asr: number;
   maghrib: number;
   isha: number;
+}
+
+export interface LiveStreamSettings {
+  url: string;
+  title: string;
+  description: string;
+  autoplay: boolean;
+  muted: boolean;
 } 

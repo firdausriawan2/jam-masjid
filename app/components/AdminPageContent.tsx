@@ -38,7 +38,14 @@ export default function AdminPageContent() {
     name: '',
     location: '',
     cityCode: '',
-    about: ''
+    about: '',
+    liveStream: {
+      url: '',
+      title: 'Masjidil Haram',
+      description: 'Live from Makkah',
+      autoplay: true,
+      muted: true
+    }
   });
   const [cities, setCities] = useState<City[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -129,81 +136,221 @@ export default function AdminPageContent() {
     switch (activeTab) {
       case 'info':
         return (
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold text-gray-800">Informasi Masjid</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <form onSubmit={handleMosqueSubmit} className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Nama Masjid</label>
-                  <Input 
-                    className="border-gray-200 focus:ring-2 focus:ring-green-500"
-                    placeholder="Masukkan nama masjid"
-                    value={mosqueForm.name}
-                    onChange={e => setMosqueForm((prev: MosqueData) => ({ ...prev, name: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Lokasi</label>
-                  <Input 
-                    className="border-gray-200 focus:ring-2 focus:ring-green-500"
-                    placeholder="Masukkan lokasi masjid"
-                    value={mosqueForm.location}
-                    onChange={e => setMosqueForm((prev: MosqueData) => ({ ...prev, location: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Kota</label>
-                  <div className="relative">
+          <div className="space-y-6">
+            {/* Info Masjid Card */}
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-gray-800">Informasi Masjid</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <form onSubmit={handleMosqueSubmit} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Nama Masjid</label>
                     <Input 
                       className="border-gray-200 focus:ring-2 focus:ring-green-500"
-                      placeholder="Cari kota... (minimal 3 karakter)"
-                      value={searchQuery}
-                      onChange={e => handleCitySearch(e.target.value)}
+                      placeholder="Masukkan nama masjid"
+                      value={mosqueForm.name}
+                      onChange={e => setMosqueForm((prev: MosqueData) => ({ ...prev, name: e.target.value }))}
                     />
-                    {isSearching && (
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
-                      </div>
-                    )}
-                    {cities.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg border border-gray-200 max-h-60 overflow-auto">
-                        {cities.map((city) => (
-                          <div
-                            key={city.id}
-                            className="px-4 py-2 hover:bg-green-50 cursor-pointer transition-colors"
-                            onClick={() => handleCitySelect(city)}
-                          >
-                            {city.lokasi}
-                          </div>
-                        ))}
-                      </div>
-                    )}
                   </div>
-                </div>
-                <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white">
-                  Simpan Perubahan
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Lokasi</label>
+                    <Input 
+                      className="border-gray-200 focus:ring-2 focus:ring-green-500"
+                      placeholder="Masukkan lokasi masjid"
+                      value={mosqueForm.location}
+                      onChange={e => setMosqueForm((prev: MosqueData) => ({ ...prev, location: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Kabupaten/Kota</label>
+                    <div className="relative">
+                      <Input 
+                        className="border-gray-200 focus:ring-2 focus:ring-green-500"
+                        placeholder="Cari kota... (minimal 3 karakter)"
+                        value={searchQuery}
+                        onChange={e => handleCitySearch(e.target.value)}
+                      />
+                      {isSearching && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600"></div>
+                        </div>
+                      )}
+                      {cities.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg border border-gray-200 max-h-60 overflow-auto">
+                          {cities.map((city) => (
+                            <div
+                              key={city.id}
+                              className="px-4 py-2 hover:bg-green-50 cursor-pointer transition-colors"
+                              onClick={() => handleCitySelect(city)}
+                            >
+                              {city.lokasi}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white">
+                    Simpan Perubahan
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
+            {/* Live Streaming Card */}
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-gray-800">Pengaturan Live Streaming</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleMosqueSubmit} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">URL Live Streaming</label>
+                    <Input 
+                      className="border-gray-200 focus:ring-2 focus:ring-green-500"
+                      placeholder="Masukkan URL YouTube Live (opsional)"
+                      value={mosqueForm.liveStream?.url || ''}
+                      onChange={e => setMosqueForm((prev: MosqueData) => ({
+                        ...prev,
+                        liveStream: {
+                          ...(prev.liveStream || {
+                            title: 'Masjidil Haram',
+                            description: 'Live from Makkah',
+                            autoplay: true,
+                            muted: true
+                          }),
+                          url: e.target.value
+                        }
+                      }))}
+                    />
+                    <p className="text-xs text-gray-500">
+                      Contoh: https://www.youtube.com/embed/2Gub8-cSH9c
+                      {mosqueForm.liveStream?.url && !mosqueForm.liveStream.url.includes('embed') && (
+                        <span className="block text-yellow-600 mt-1">
+                          *Pastikan menggunakan URL embed YouTube (mengandung /embed/)
+                        </span>
+                      )}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Judul Live</label>
+                    <Input 
+                      className="border-gray-200 focus:ring-2 focus:ring-green-500"
+                      placeholder="Masukkan judul live streaming"
+                      value={mosqueForm.liveStream?.title || ''}
+                      onChange={e => setMosqueForm((prev: MosqueData) => ({
+                        ...prev,
+                        liveStream: {
+                          ...(prev.liveStream || {
+                            url: '',
+                            description: 'Live from Makkah',
+                            autoplay: true,
+                            muted: true
+                          }),
+                          title: e.target.value
+                        }
+                      }))}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Deskripsi Live</label>
+                    <Input 
+                      className="border-gray-200 focus:ring-2 focus:ring-green-500"
+                      placeholder="Masukkan deskripsi live streaming"
+                      value={mosqueForm.liveStream?.description || ''}
+                      onChange={e => setMosqueForm((prev: MosqueData) => ({
+                        ...prev,
+                        liveStream: {
+                          ...(prev.liveStream || {
+                            url: '',
+                            title: 'Masjidil Haram',
+                            autoplay: true,
+                            muted: true
+                          }),
+                          description: e.target.value
+                        }
+                      }))}
+                    />
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="autoplay"
+                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                        checked={mosqueForm.liveStream?.autoplay ?? true}
+                        onChange={e => setMosqueForm((prev: MosqueData) => ({
+                          ...prev,
+                          liveStream: {
+                            ...(prev.liveStream || {
+                              url: '',
+                              title: 'Masjidil Haram',
+                              description: 'Live from Makkah',
+                              muted: true
+                            }),
+                            autoplay: e.target.checked
+                          }
+                        }))}
+                      />
+                      <label htmlFor="autoplay" className="text-sm font-medium text-gray-700">
+                        Autoplay
+                      </label>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="muted"
+                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                        checked={mosqueForm.liveStream?.muted ?? true}
+                        onChange={e => setMosqueForm((prev: MosqueData) => ({
+                          ...prev,
+                          liveStream: {
+                            ...(prev.liveStream || {
+                              url: '',
+                              title: 'Masjidil Haram',
+                              description: 'Live from Makkah',
+                              autoplay: true
+                            }),
+                            muted: e.target.checked
+                          }
+                        }))}
+                      />
+                      <label htmlFor="muted" className="text-sm font-medium text-gray-700">
+                        Muted
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-gray-200">
+                    <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white">
+                      Simpan Pengaturan Live
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
         );
       case 'kajian':
         return (
           <Card className="shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
               <CardTitle className="text-xl font-semibold text-gray-800">Daftar Kajian</CardTitle>
               <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
                 <SheetTrigger asChild>
-                  <Button className="bg-green-600 hover:bg-green-700">
+                  <Button className="bg-green-600 hover:bg-green-700 w-full sm:w-auto">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
                     </svg>
                     Tambah Kajian
                   </Button>
                 </SheetTrigger>
-                <SheetContent>
+                <SheetContent className="w-full sm:max-w-lg">
                   <SheetHeader>
                     <SheetTitle>Tambah Kajian Baru</SheetTitle>
                   </SheetHeader>
@@ -252,36 +399,40 @@ export default function AdminPageContent() {
               </Sheet>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Judul</TableHead>
-                      <TableHead>Ustadz</TableHead>
-                      <TableHead>Jadwal</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {announcements.map((kajian: KajianData) => (
-                      <TableRow key={kajian.id} className="hover:bg-gray-50">
-                        <TableCell className="font-medium">{kajian.text}</TableCell>
-                        <TableCell>{kajian.ustadz}</TableCell>
-                        <TableCell>{kajian.schedule}</TableCell>
-                        <TableCell>
-                          <Button 
-                            variant={kajian.isActive ? "default" : "outline"} 
-                            size="sm"
-                            className={kajian.isActive ? "bg-green-600 hover:bg-green-700" : "text-gray-600 hover:text-gray-700"}
-                            onClick={() => toggleKajianStatus(kajian.id)}
-                          >
-                            {kajian.isActive ? 'Aktif' : 'Nonaktif'}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+              <div className="overflow-x-auto -mx-4 sm:mx-0">
+                <div className="min-w-full inline-block align-middle">
+                  <div className="overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="whitespace-nowrap">Judul</TableHead>
+                          <TableHead className="whitespace-nowrap">Ustadz</TableHead>
+                          <TableHead className="whitespace-nowrap">Jadwal</TableHead>
+                          <TableHead className="whitespace-nowrap">Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {announcements.map((kajian: KajianData) => (
+                          <TableRow key={kajian.id} className="hover:bg-gray-50">
+                            <TableCell className="font-medium max-w-[150px] sm:max-w-none truncate">{kajian.text}</TableCell>
+                            <TableCell className="max-w-[100px] sm:max-w-none truncate">{kajian.ustadz}</TableCell>
+                            <TableCell className="max-w-[100px] sm:max-w-none truncate">{kajian.schedule}</TableCell>
+                            <TableCell>
+                              <Button 
+                                variant={kajian.isActive ? "default" : "outline"} 
+                                size="sm"
+                                className={`${kajian.isActive ? 'bg-green-600 hover:bg-green-700' : 'text-gray-600 hover:text-gray-700'} whitespace-nowrap`}
+                                onClick={() => toggleKajianStatus(kajian.id)}
+                              >
+                                {kajian.isActive ? 'Aktif' : 'Nonaktif'}
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -307,14 +458,14 @@ export default function AdminPageContent() {
       {/* Navbar */}
       <nav className="bg-white shadow-md">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-800">Panel Admin Masjid</h1>
+          <div className="flex flex-col sm:flex-row items-center justify-between py-4 sm:h-16">
+            <div className="flex items-center w-full sm:w-auto justify-center sm:justify-start mb-4 sm:mb-0">
+              <h1 className="text-xl font-bold text-gray-800">ساعة المسجد</h1>
             </div>
-            <div className="flex space-x-1">
+            <div className="flex flex-wrap justify-center w-full sm:w-auto gap-2">
               <Button
                 variant="ghost"
-                className={`px-4 py-2 rounded-md transition-colors ${
+                className={`px-3 py-1.5 rounded-md transition-colors ${
                   activeTab === 'info' 
                     ? 'bg-green-50 text-green-600' 
                     : 'text-gray-600 hover:bg-gray-50'
@@ -325,7 +476,7 @@ export default function AdminPageContent() {
               </Button>
               <Button
                 variant="ghost"
-                className={`px-4 py-2 rounded-md transition-colors ${
+                className={`px-3 py-1.5 rounded-md transition-colors ${
                   activeTab === 'kajian' 
                     ? 'bg-green-50 text-green-600' 
                     : 'text-gray-600 hover:bg-gray-50'
@@ -336,7 +487,7 @@ export default function AdminPageContent() {
               </Button>
               <Button
                 variant="ghost"
-                className={`px-4 py-2 rounded-md transition-colors ${
+                className={`px-3 py-1.5 rounded-md transition-colors ${
                   activeTab === 'pengaturan' 
                     ? 'bg-green-50 text-green-600' 
                     : 'text-gray-600 hover:bg-gray-50'
@@ -351,7 +502,7 @@ export default function AdminPageContent() {
       </nav>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-4 sm:py-8">
         <div className="max-w-4xl mx-auto">
           {renderContent()}
         </div>

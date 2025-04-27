@@ -19,6 +19,20 @@ interface City {
   lokasi: string;
 }
 
+interface MosqueData {
+  name: string;
+  location: string;
+  cityCode: string;
+  about: string;
+  liveStream: {
+    url: string;
+    title: string;
+    description: string;
+    autoplay: boolean;
+    muted: boolean;
+  };
+}
+
 export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [recentlyTriggered, setRecentlyTriggered] = useState<string[]>([]);
@@ -28,6 +42,19 @@ export default function Home() {
   const [cityInfo, setCityInfo] = useState<City>({ id: '1301', lokasi: 'Jakarta' });
   const [isLoading, setIsLoading] = useState(true);
   const { announcements, loadAnnouncements } = useKajian();
+  const [mosqueInfo, setMosqueInfo] = useState<MosqueData>({
+    name: '',
+    location: '',
+    cityCode: '1301',
+    about: '',
+    liveStream: {
+      url: '',
+      title: 'Masjidil Haram',
+      description: 'Live from Makkah',
+      autoplay: true,
+      muted: true
+    }
+  });
 
   // Fungsi untuk sinkronisasi waktu - bisa diganti dengan panggilan ke server waktu
   const synchronizeTime = () => {
@@ -125,9 +152,18 @@ export default function Home() {
         
         const prayerService = PrayerTimeService.getInstance();
         const cityData = await prayerService.getCityById(configData.mosque.cityCode);
-        setCityInfo({ 
-          id: configData.mosque.cityCode, 
-          lokasi: cityData.lokasi
+        setMosqueInfo({ 
+          name: configData.mosque.name,
+          location: cityData.lokasi,
+          cityCode: configData.mosque.cityCode,
+          about: configData.mosque.about,
+          liveStream: configData.mosque.liveStream || {
+            url: '',
+            title: 'Masjidil Haram',
+            description: 'Live from Makkah',
+            autoplay: true,
+            muted: true
+          }
         });
         
         // Load kajian data
@@ -360,20 +396,35 @@ export default function Home() {
           </div>
         </div>
 
-            {/* Makkah Image - Menggunakan relative dan overflow hidden */}
+            {/* Makkah Live View */}
             <div className="relative rounded-lg overflow-hidden border border-[#E6D5C9]/10 h-full">
-          <div className="absolute inset-0 bg-gradient-to-t from-[#1F2A24] via-[#1F2A24]/60 to-transparent z-10"></div>
-          <Image 
-            src="/makkah.jpg" 
-            alt="Makkah Live" 
-            width={1200} 
-            height={742} 
-            className="w-full h-full object-cover"
-            priority
-          />
-          <div className="absolute bottom-0 left-0 right-0 p-3 z-20 bg-gradient-to-t from-[#1F2A24] to-transparent">
-            <p className="text-base md:text-lg lg:text-xl font-medium text-[#E6D5C9]">Masjidil Haram</p>
-            <p className="text-xs md:text-sm text-[#E6D5C9]/70">Live from Makkah</p>
+              <div className="absolute inset-0 bg-gradient-to-t from-[#1F2A24] via-[#1F2A24]/60 to-transparent z-10 pointer-events-none"></div>
+              {mosqueInfo?.liveStream?.url ? (
+                <iframe
+                  src={`${mosqueInfo.liveStream.url}${
+                    mosqueInfo.liveStream.url.includes('?') ? '&' : '?'
+                  }autoplay=${mosqueInfo.liveStream.autoplay ? '1' : '0'}&mute=${mosqueInfo.liveStream.muted ? '1' : '0'}`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full object-cover"
+                ></iframe>
+              ) : (
+                <Image 
+                  src="/makkah.jpg" 
+                  alt="Makkah Live" 
+                  width={1200} 
+                  height={742} 
+                  className="w-full h-full object-cover"
+                  priority
+                />
+              )}
+              <div className="absolute bottom-0 left-0 right-0 p-3 z-20 bg-gradient-to-t from-[#1F2A24] to-transparent">
+                <p className="text-base md:text-lg lg:text-xl font-medium text-[#E6D5C9]">
+                  {mosqueInfo?.liveStream?.title || 'Masjidil Haram'}
+                </p>
+                <p className="text-xs md:text-sm text-[#E6D5C9]/70">
+                  {mosqueInfo?.liveStream?.description || 'Live from Makkah'}
+                </p>
               </div>
             </div>
           </div>
