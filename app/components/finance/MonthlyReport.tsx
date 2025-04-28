@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Transaction } from '@/app/types/finance';
 
@@ -19,7 +19,7 @@ export default function MonthlyReport() {
   const [report, setReport] = useState<MonthlyReportData | null>(null);
   
   // Ambil data laporan bulanan dari API
-  const fetchMonthlyReport = async () => {
+  const fetchMonthlyReport = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -38,12 +38,12 @@ export default function MonthlyReport() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [year, month]);
   
   // Ambil laporan saat komponen dimount dan saat tahun/bulan berubah
   useEffect(() => {
     fetchMonthlyReport();
-  }, [year, month]);
+  }, [fetchMonthlyReport]);
   
   // Generate tahun untuk dropdown (5 tahun terakhir)
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Transaction, TransactionType } from '@/app/types/finance';
+import { Transaction, TransactionType, IncomeCategory, ExpenseCategory } from '@/app/types/finance';
 
 const transactionSchema = z.object({
   type: z.enum(['income', 'expense']),
@@ -54,6 +54,7 @@ export default function TransactionForm({ onSubmit, initialData = {}, isEditing 
     try {
       const result = await onSubmit({
         ...data,
+        category: data.category as (IncomeCategory | ExpenseCategory),
         proofUrl: initialData.proofUrl,
       });
       

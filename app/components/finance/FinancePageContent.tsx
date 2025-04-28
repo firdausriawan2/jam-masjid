@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import TransactionList from './TransactionList';
@@ -16,7 +16,7 @@ export default function FinancePageContent() {
   const [error, setError] = useState<string | null>(null);
   
   // Fetch data dari API
-  const fetchFinanceData = async () => {
+  const fetchFinanceData = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch('/api/finance');
@@ -34,12 +34,12 @@ export default function FinancePageContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
   
   // Fetch data saat komponen dimount
   useEffect(() => {
     fetchFinanceData();
-  }, []);
+  }, [fetchFinanceData]);
   
   // Fungsi untuk add transaction
   const handleAddTransaction = async (transaction: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) => {

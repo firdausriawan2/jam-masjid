@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import type { Transaction, FinanceData, TransactionType } from '@/app/types/finance';
+import type { Transaction, FinanceData, TransactionType, IncomeCategory, ExpenseCategory } from '@/app/types/finance';
 
 // Path ke file JSON
 const dataFilePath = path.join(process.cwd(), 'public', 'data', 'finance.json');
@@ -75,7 +75,7 @@ export async function addTransaction(
     id: uuidv4(),
     date,
     type,
-    category,
+    category: category as (IncomeCategory | ExpenseCategory),
     amount,
     description,
     proofUrl,

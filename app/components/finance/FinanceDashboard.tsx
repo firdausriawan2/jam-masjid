@@ -103,6 +103,10 @@ export default function FinanceDashboard({ transactions, currentBalance }: Finan
     previousMonthStats.expense
   );
   
+  // Tampilkan total di bagian bawah
+  const percentageIncome = totalIncome > 0 ? Math.round((totalIncome / (totalIncome + totalExpense)) * 100) : 0;
+  const percentageExpense = totalExpense > 0 ? Math.round((totalExpense / (totalIncome + totalExpense)) * 100) : 0;
+  
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -218,6 +222,23 @@ export default function FinanceDashboard({ transactions, currentBalance }: Finan
             <p className={`text-xl font-bold ${currentMonthStats.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               Rp {currentMonthStats.balance.toLocaleString('id-ID')}
             </p>
+          </div>
+        </div>
+
+        {/* Tampilkan persentase total pendapatan vs pengeluaran */}
+        <div className="mt-6">
+          <h4 className="text-sm font-medium text-gray-500 mb-2">Proporsi Pemasukan vs Pengeluaran Total</h4>
+          <div className="w-full bg-gray-200 rounded-full h-4">
+            <div
+              className="bg-green-600 h-4 rounded-l-full"
+              style={{ width: `${percentageIncome}%` }}
+            >
+              <span className="px-2 text-xs text-white">{percentageIncome}%</span>
+            </div>
+          </div>
+          <div className="flex justify-between text-xs mt-1">
+            <span className="text-green-600">Pemasukan: {percentageIncome}%</span>
+            <span className="text-red-600">Pengeluaran: {percentageExpense}%</span>
           </div>
         </div>
       </div>

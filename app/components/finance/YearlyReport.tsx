@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface MonthlyData {
   month: number;
@@ -23,7 +23,7 @@ export default function YearlyReport() {
   const [report, setReport] = useState<YearlyReportData | null>(null);
   
   // Ambil data laporan tahunan dari API
-  const fetchYearlyReport = async () => {
+  const fetchYearlyReport = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -42,12 +42,12 @@ export default function YearlyReport() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [year]);
   
   // Ambil laporan saat komponen dimount dan saat tahun berubah
   useEffect(() => {
     fetchYearlyReport();
-  }, [year]);
+  }, [fetchYearlyReport]);
   
   // Generate tahun untuk dropdown (5 tahun terakhir)
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i);
