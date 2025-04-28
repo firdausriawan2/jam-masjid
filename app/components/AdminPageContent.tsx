@@ -531,6 +531,27 @@ export default function AdminPageContent() {
             </CardContent>
           </Card>
         );
+      case 'finance':
+        return (
+          <div className="space-y-6">
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-gray-800">Kas Masjid</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-4">
+                  Mengelola keuangan masjid dengan mudah. Anda akan diarahkan ke halaman khusus manajemen kas.
+                </p>
+                <Button 
+                  className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
+                  onClick={() => router.push('/admin/finance')}
+                >
+                  Buka Manajemen Kas
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        );
       case 'pengaturan':
         return (
           <div className="space-y-6">
@@ -644,6 +665,17 @@ export default function AdminPageContent() {
                 onClick={() => setActiveTab('kajian')}
               >
                 Kajian
+              </Button>
+              <Button
+                variant="ghost"
+                className={`px-3 py-1.5 rounded-md transition-colors ${
+                  activeTab === 'finance' 
+                    ? 'bg-green-50 text-green-600' 
+                    : 'text-gray-600 hover:bg-gray-50'
+                }`}
+                onClick={() => setActiveTab('finance')}
+              >
+                Kas Masjid
               </Button>
               <Button
                 variant="ghost"

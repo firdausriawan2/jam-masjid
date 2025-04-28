@@ -1,0 +1,26 @@
+{
+  "transactions": [
+    {
+      "id": "c00262c0-b782-4564-a822-5681942b8847",
+      "date": "2025-04-28",
+      "type": "expense",
+      "category": "air",
+      "amount": 150000,
+      "description": "Pembayaran AIR PDAM",
+      "createdAt": "2025-04-28T00:36:51.345Z",
+      "updatedAt": "2025-04-28T00:36:51.345Z"
+    },
+    {
+      "id": "6f85ef47-fbb7-4f6f-b820-67bb5bcb7396",
+      "date": "2025-04-28",
+      "type": "income",
+      "category": "infaq",
+      "amount": 1250000,
+      "description": "Kas JIm'at",
+      "createdAt": "2025-04-28T00:34:17.128Z",
+      "updatedAt": "2025-04-28T00:34:17.128Z"
+    }
+  ],
+  "currentBalance": 1100000,
+  "lastUpdated": "2025-04-28T00:36:51.345Z"
+}
