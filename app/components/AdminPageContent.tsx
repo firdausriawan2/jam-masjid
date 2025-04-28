@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useConfig } from '../hooks/useConfig';
 import { PrayerTimeService } from '../services/PrayerTimeService';
 import { MosqueData, KajianData } from '../types/config';
+import { useRouter } from 'next/navigation';
 
 interface City {
   id: string;
@@ -23,7 +24,16 @@ interface KajianForm {
   isActive: boolean;
 }
 
+interface CredentialForm {
+  username: string;
+  name: string;
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
 export default function AdminPageContent() {
+  const router = useRouter();
   const { mosqueInfo, announcements, loading, updateMosqueInfo, addKajian, toggleKajianStatus } = useConfig();
   const [activeTab, setActiveTab] = useState('info');
   const [newKajian, setNewKajian] = useState<KajianForm>({
@@ -51,6 +61,15 @@ export default function AdminPageContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [credentialForm, setCredentialForm] = useState<CredentialForm>({
+    username: 'admin', // default value, akan diupdate dari credentials.json
+    name: '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [credentialError, setCredentialError] = useState('');
+  const [credentialSuccess, setCredentialSuccess] = useState('');
 
   // Update form when mosqueInfo changes
   useEffect(() => {
@@ -66,6 +85,22 @@ export default function AdminPageContent() {
       }
     }
   }, [mosqueInfo]);
+
+  // Tambahkan useEffect untuk mengambil data kredensial saat pertama kali load
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setCredentialForm(prev => ({
+            ...prev,
+            username: data.user.username,
+            name: data.user.name
+          }));
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   // Handle mosque info form
   const handleMosqueSubmit = async (e: React.FormEvent) => {
@@ -120,6 +155,65 @@ export default function AdminPageContent() {
       isActive: true
     });
     setSheetOpen(false);
+  };
+
+  // Tambahkan fungsi untuk handle update kredensial
+  const handleCredentialSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCredentialError('');
+    setCredentialSuccess('');
+
+    // Validasi password
+    if (credentialForm.newPassword !== credentialForm.confirmPassword) {
+      setCredentialError('Password baru dan konfirmasi password tidak cocok');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/auth/update-credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: credentialForm.name,
+          currentPassword: credentialForm.currentPassword,
+          newPassword: credentialForm.newPassword
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Terjadi kesalahan saat memperbarui kredensial');
+      }
+
+      setCredentialSuccess('Kredensial berhasil diperbarui');
+      setCredentialForm(prev => ({
+        ...prev,
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      }));
+    } catch (error) {
+      setCredentialError(error instanceof Error ? error.message : 'Terjadi kesalahan');
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch('/api/auth/logout', {
+        method: 'POST',
+      });
+
+      if (!res.ok) {
+        throw new Error('Gagal logout');
+      }
+
+      // Redirect ke halaman login
+      router.push('/admin/login');
+      router.refresh();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   if (loading) {
@@ -439,14 +533,80 @@ export default function AdminPageContent() {
         );
       case 'pengaturan':
         return (
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-xl font-semibold text-gray-800">Pengaturan</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600">Pengaturan akan segera hadir...</p>
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-gray-800">Pengaturan Kredensial</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleCredentialSubmit} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Username</label>
+                    <Input 
+                      value={credentialForm.username}
+                      disabled
+                      className="bg-gray-50"
+                    />
+                    <p className="text-xs text-gray-500">Username tidak dapat diubah</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Nama</label>
+                    <Input 
+                      value={credentialForm.name}
+                      onChange={e => setCredentialForm(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Masukkan nama Anda"
+                      className="border-gray-200 focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Password Saat Ini</label>
+                    <Input 
+                      type="password"
+                      value={credentialForm.currentPassword}
+                      onChange={e => setCredentialForm(prev => ({ ...prev, currentPassword: e.target.value }))}
+                      placeholder="Masukkan password saat ini"
+                      className="border-gray-200 focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Password Baru</label>
+                    <Input 
+                      type="password"
+                      value={credentialForm.newPassword}
+                      onChange={e => setCredentialForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                      placeholder="Masukkan password baru"
+                      className="border-gray-200 focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Konfirmasi Password Baru</label>
+                    <Input 
+                      type="password"
+                      value={credentialForm.confirmPassword}
+                      onChange={e => setCredentialForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                      placeholder="Masukkan ulang password baru"
+                      className="border-gray-200 focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+
+                  {credentialError && (
+                    <div className="text-red-500 text-sm">{credentialError}</div>
+                  )}
+                  {credentialSuccess && (
+                    <div className="text-green-500 text-sm">{credentialSuccess}</div>
+                  )}
+
+                  <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white">
+                    Simpan Perubahan
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
         );
       default:
         return null;
@@ -462,7 +622,7 @@ export default function AdminPageContent() {
             <div className="flex items-center w-full sm:w-auto justify-center sm:justify-start mb-4 sm:mb-0">
               <h1 className="text-xl font-bold text-gray-800">ساعة المسجد</h1>
             </div>
-            <div className="flex flex-wrap justify-center w-full sm:w-auto gap-2">
+            <div className="flex flex-wrap justify-center w-full sm:w-auto gap-2 items-center">
               <Button
                 variant="ghost"
                 className={`px-3 py-1.5 rounded-md transition-colors ${
@@ -495,6 +655,15 @@ export default function AdminPageContent() {
                 onClick={() => setActiveTab('pengaturan')}
               >
                 Pengaturan
+              </Button>
+              <div className="h-6 w-px bg-gray-200 mx-2 hidden sm:block" />
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleLogout}
+                className="bg-red-500 hover:bg-red-600 text-white"
+              >
+                Keluar
               </Button>
             </div>
           </div>
