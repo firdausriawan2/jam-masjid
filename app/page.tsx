@@ -331,7 +331,7 @@ export default function Home() {
         <div className="container mx-auto p-4 flex flex-1">
           <div className="grid grid-cols-[1fr_1.618fr] gap-4 w-full h-full">
         {/* Left Panel */}
-            <div className="space-y-3 flex flex-col">
+            <div className="space-y-3 flex flex-col h-full">
           <div className="bg-[#1F2A24]/80 backdrop-blur-sm rounded-lg p-3 border border-[#E6D5C9]/10">
             <h3 className="text-sm md:text-base lg:text-lg font-medium mb-2 text-[#E6D5C9] flex items-center gap-2">
               <span className="w-1 h-1 md:w-2 md:h-2 rounded-full bg-[#E6D5C9] animate-pulse"></span>
@@ -354,7 +354,7 @@ export default function Home() {
             </div>
           </div>
 
-              <div className="bg-[#1F2A24]/80 backdrop-blur-sm rounded-lg p-3 border border-[#E6D5C9]/10 flex-1 flex flex-col justify-between">
+              <div className="bg-[#1F2A24]/80 backdrop-blur-sm rounded-lg p-3 border border-[#E6D5C9]/10 flex flex-col justify-between h-full">
                 {/* Countdown Section */}
             <Countdown nextPrayerTime={nextPrayer.time} nextPrayerName={nextPrayer.name} />
                 
@@ -397,8 +397,10 @@ export default function Home() {
         </div>
 
             {/* Makkah Live View */}
-            <div className="relative rounded-lg overflow-hidden border border-[#E6D5C9]/10 h-full">
-              <div className="absolute inset-0 bg-gradient-to-t from-[#1F2A24] via-[#1F2A24]/60 to-transparent z-10 pointer-events-none"></div>
+            <div className="relative rounded-lg overflow-hidden border border-[#E6D5C9]/10 h-full flex flex-col">
+              {!mosqueInfo?.liveStream?.url && (
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1F2A24] via-[#1F2A24]/60 to-transparent z-10 pointer-events-none"></div>
+              )}
               {mosqueInfo?.liveStream?.url ? (
                 <iframe
                   src={`${mosqueInfo.liveStream.url}${
@@ -406,7 +408,7 @@ export default function Home() {
                   }autoplay=${mosqueInfo.liveStream.autoplay ? '1' : '0'}&mute=${mosqueInfo.liveStream.muted ? '1' : '0'}`}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover min-h-0 flex-1"
                 ></iframe>
               ) : (
                 <Image 
@@ -414,7 +416,7 @@ export default function Home() {
                   alt="Makkah Live" 
                   width={1200} 
                   height={742} 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover min-h-0 flex-1"
                   priority
                 />
               )}

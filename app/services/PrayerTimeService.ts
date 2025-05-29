@@ -32,20 +32,26 @@ export interface PrayerTime {
   time: string;
 }
 
+interface DailyPrayerTimes {
+  date: string;
+  prayers: PrayerTime[];
+}
+
 export class PrayerTimeService {
   private static instance: PrayerTimeService;
   private cityId: string = '0315'; // Sesuai dengan mosque-config.json
   private prayerTimes: PrayerTime[] = [];
+  private monthlyPrayerTimes: DailyPrayerTimes[] = []; // NEW: Menyimpan 1 bulan data
   private lastUpdated: Date | null = null;
 
   // Daftar waktu shalat yang akan diambil dengan nama yang sesuai API
   private prayerNames: PrayerTime[] = [
     { name: 'Subuh', time: '' },
+    { name: 'Terbit', time: '' },
     { name: 'Dzuhur', time: '' },
     { name: 'Ashar', time: '' },
     { name: 'Maghrib', time: '' },
-    { name: 'Isya', time: '' },
-    { name: 'Terbit', time: '' }
+    { name: 'Isya', time: '' }
   ];
 
   // Daftar kota statis untuk fallback
@@ -139,8 +145,22 @@ export class PrayerTimeService {
   public async getPrayerTimes(): Promise<PrayerTime[]> {
     // Cek apakah data perlu direfresh
     if (this.shouldRefreshData()) {
-      await this.fetchPrayerTimes();
+      try {
+        await this.fetchPrayerTimes();
+      } catch (error) {
+        console.warn('Failed to fetch new data, using existing data:', error);
+      }
     }
+    
+    // Jika ada data monthly, gunakan untuk hari ini
+    const today = new Date();
+    if (this.monthlyPrayerTimes.length > 0) {
+      const todayPrayers = this.getPrayerTimesByDate(today);
+      if (todayPrayers && todayPrayers.length > 0 && todayPrayers[0].time !== '05:00') {
+        this.prayerTimes = todayPrayers;
+      }
+    }
+    
     return this.prayerTimes;
   }
 
@@ -173,11 +193,10 @@ export class PrayerTimeService {
       return true;
     }
     
-    // Jika data dari hari yang berbeda
+    // Jika data dari bulan yang berbeda (refresh monthly)
     const now = new Date();
     const lastUpdate = new Date(this.lastUpdated);
-    if (now.getDate() !== lastUpdate.getDate() ||
-        now.getMonth() !== lastUpdate.getMonth() ||
+    if (now.getMonth() !== lastUpdate.getMonth() ||
         now.getFullYear() !== lastUpdate.getFullYear()) {
       return true;
     }
@@ -202,23 +221,28 @@ export class PrayerTimeService {
           const data = await response.json();
           
           if (data.status && data.data && data.data.jadwal) {
+            // NEW: Simpan semua data bulan
+            this.monthlyPrayerTimes = data.data.jadwal.map((jadwal: JadwalSholat) => ({
+              date: jadwal.date,
+              prayers: this.prayerNames.map(prayer => {
+                const apiName = this.getApiPrayerName(prayer.name);
+                return {
+                  name: prayer.name,
+                  time: jadwal[apiName as keyof JadwalSholat] || ''
+                };
+              })
+            }));
+
+            // Set jadwal hari ini untuk kompatibilitas
             const today = now.getDate();
-            const jadwal = data.data.jadwal.find((j: JadwalSholat) => {
-              const jadwalDate = new Date(j.date).getDate();
-              return jadwalDate === today;
+            const todaySchedule = this.monthlyPrayerTimes.find(schedule => {
+              const scheduleDate = new Date(schedule.date).getDate();
+              return scheduleDate === today;
             });
             
-            if (!jadwal) throw new Error('Jadwal not found for today');
+            if (!todaySchedule) throw new Error('Jadwal not found for today');
             
-            // Update waktu shalat dengan mapping yang benar
-            this.prayerTimes = this.prayerNames.map(prayer => {
-              const apiName = this.getApiPrayerName(prayer.name);
-              return {
-                name: prayer.name,
-                time: jadwal[apiName as keyof JadwalSholat] || ''
-              };
-            });
-            
+            this.prayerTimes = todaySchedule.prayers;
             this.lastUpdated = now;
             this.saveToLocalStorage();
             return;
@@ -232,6 +256,17 @@ export class PrayerTimeService {
       throw new Error('Failed to fetch prayer times after 3 attempts');
     } catch (error) {
       console.error('Error fetching prayer times:', error);
+      
+      // Fallback ke data yang tersimpan di localStorage
+      this.loadFromLocalStorage();
+      
+      // Jika masih tidak ada data, gunakan fallback default
+      if (this.prayerTimes.length === 0) {
+        console.warn('Using fallback prayer times');
+        this.prayerTimes = this.getFallbackPrayerTimes();
+        this.lastUpdated = new Date();
+      }
+      
       throw error;
     }
   }
@@ -240,11 +275,11 @@ export class PrayerTimeService {
   private getApiPrayerName(prayerName: string): string {
     const mapping: { [key: string]: string } = {
       'Subuh': 'subuh',
+      'Terbit': 'terbit',
       'Dzuhur': 'dzuhur',
       'Ashar': 'ashar',
       'Maghrib': 'maghrib',
-      'Isya': 'isya',
-      'Terbit': 'terbit'
+      'Isya': 'isya'
     };
     return mapping[prayerName] || prayerName.toLowerCase();
   }
@@ -253,6 +288,7 @@ export class PrayerTimeService {
     try {
       localStorage.setItem('prayerTimesData', JSON.stringify({
         times: this.prayerTimes,
+        monthlyTimes: this.monthlyPrayerTimes,
         cityId: this.cityId,
         lastUpdated: this.lastUpdated?.toISOString()
       }));
@@ -266,10 +302,12 @@ export class PrayerTimeService {
       const savedData = localStorage.getItem('prayerTimesData');
       if (savedData) {
         const data = JSON.parse(savedData);
-        this.prayerTimes = data.times;
+        this.prayerTimes = data.times || [];
+        this.monthlyPrayerTimes = data.monthlyTimes || [];
         this.cityId = data.cityId;
         this.lastUpdated = data.lastUpdated ? new Date(data.lastUpdated) : null;
         console.log('Prayer times loaded from localStorage:', this.prayerTimes);
+        console.log('Monthly prayer times loaded:', this.monthlyPrayerTimes.length, 'days');
       }
     } catch (error) {
       console.error('Error loading from localStorage:', error);
@@ -298,5 +336,40 @@ export class PrayerTimeService {
       console.error('Error searching cities:', error);
       return [];
     }
+  }
+
+  // Fallback prayer times jika API tidak tersedia
+  private getFallbackPrayerTimes(): PrayerTime[] {
+    return [
+      { name: 'Subuh', time: '05:00' },
+      { name: 'Terbit', time: '06:15' },
+      { name: 'Dzuhur', time: '12:00' },
+      { name: 'Ashar', time: '15:00' },
+      { name: 'Maghrib', time: '18:00' },
+      { name: 'Isya', time: '19:15' }
+    ];
+  }
+
+  // NEW: Get prayer times for specific date
+  public getPrayerTimesByDate(targetDate: Date): PrayerTime[] {
+    const dateString = targetDate.toISOString().split('T')[0];
+    const schedule = this.monthlyPrayerTimes.find(schedule => 
+      schedule.date.startsWith(dateString)
+    );
+    
+    if (schedule) {
+      return schedule.prayers;
+    }
+    
+    // Fallback jika tanggal tidak ditemukan
+    return this.getFallbackPrayerTimes();
+  }
+
+  // NEW: Check if we have data for specific date
+  public hasDataForDate(targetDate: Date): boolean {
+    const dateString = targetDate.toISOString().split('T')[0];
+    return this.monthlyPrayerTimes.some(schedule => 
+      schedule.date.startsWith(dateString)
+    );
   }
 } 

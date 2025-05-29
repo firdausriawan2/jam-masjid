@@ -7,6 +7,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useConfig } from '../hooks/useConfig';
+import { useNetworkStatus } from '../hooks/useNetworkStatus';
+import { useVersionCheck } from '../hooks/useVersionCheck';
 import { PrayerTimeService } from '../services/PrayerTimeService';
 import { MosqueData, KajianData } from '../types/config';
 import { useRouter } from 'next/navigation';
@@ -32,9 +34,22 @@ interface CredentialForm {
   confirmPassword: string;
 }
 
+interface StaffForm {
+  muazzin: {
+    name: string;
+    location: string;
+  };
+  imam: {
+    name: string;
+    location: string;
+  };
+}
+
 export default function AdminPageContent() {
   const router = useRouter();
   const { mosqueInfo, announcements, loading, updateMosqueInfo, addKajian, toggleKajianStatus } = useConfig();
+  const isOnline = useNetworkStatus();
+  const { currentVersion, updateAvailable, isLoading: versionLoading, applyUpdate, checkForUpdates } = useVersionCheck();
   const [activeTab, setActiveTab] = useState('info');
   const [newKajian, setNewKajian] = useState<KajianForm>({
     text: '',
@@ -70,6 +85,16 @@ export default function AdminPageContent() {
   });
   const [credentialError, setCredentialError] = useState('');
   const [credentialSuccess, setCredentialSuccess] = useState('');
+  const [staffForm, setStaffForm] = useState<StaffForm>({
+    muazzin: {
+      name: 'Ust. Ahmad',
+      location: 'Selatpanjang - Riau'
+    },
+    imam: {
+      name: 'Ust. Abdullah',
+      location: 'Selatpanjang - Riau'
+    }
+  });
 
   // Update form when mosqueInfo changes
   useEffect(() => {
@@ -100,6 +125,22 @@ export default function AdminPageContent() {
         }
       })
       .catch(console.error);
+  }, []);
+
+  // Load staff data
+  useEffect(() => {
+    const loadStaffData = async () => {
+      try {
+        const staffData = localStorage.getItem('mosque_staff');
+        if (staffData) {
+          setStaffForm(JSON.parse(staffData));
+        }
+      } catch (error) {
+        console.error('Error loading staff data:', error);
+      }
+    };
+    
+    loadStaffData();
   }, []);
 
   // Handle mosque info form
@@ -195,6 +236,18 @@ export default function AdminPageContent() {
       }));
     } catch (error) {
       setCredentialError(error instanceof Error ? error.message : 'Terjadi kesalahan');
+    }
+  };
+
+  // Handle staff form submission
+  const handleStaffSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      localStorage.setItem('mosque_staff', JSON.stringify(staffForm));
+      // Reload halaman untuk memperbarui tampilan
+      window.location.reload();
+    } catch (error) {
+      console.error('Error saving staff data:', error);
     }
   };
 
@@ -629,6 +682,201 @@ export default function AdminPageContent() {
             </Card>
           </div>
         );
+      case 'staff':
+        return (
+          <div className="space-y-6">
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-gray-800">Pengaturan Petugas Masjid</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleStaffSubmit} className="space-y-6">
+                  {/* Muazzin Settings */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium text-gray-800">Muazzin</h3>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Nama Muazzin</label>
+                      <Input 
+                        value={staffForm.muazzin.name}
+                        onChange={e => setStaffForm(prev => ({
+                          ...prev,
+                          muazzin: { ...prev.muazzin, name: e.target.value }
+                        }))}
+                        placeholder="Masukkan nama muazzin"
+                        className="border-gray-200 focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Lokasi/Asal</label>
+                      <Input 
+                        value={staffForm.muazzin.location}
+                        onChange={e => setStaffForm(prev => ({
+                          ...prev,
+                          muazzin: { ...prev.muazzin, location: e.target.value }
+                        }))}
+                        placeholder="Masukkan lokasi/asal muazzin"
+                        className="border-gray-200 focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="border-t border-gray-200 pt-6">
+                    {/* Imam Settings */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium text-gray-800">Imam</h3>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Nama Imam</label>
+                        <Input 
+                          value={staffForm.imam.name}
+                          onChange={e => setStaffForm(prev => ({
+                            ...prev,
+                            imam: { ...prev.imam, name: e.target.value }
+                          }))}
+                          placeholder="Masukkan nama imam"
+                          className="border-gray-200 focus:ring-2 focus:ring-green-500"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Lokasi/Asal</label>
+                        <Input 
+                          value={staffForm.imam.location}
+                          onChange={e => setStaffForm(prev => ({
+                            ...prev,
+                            imam: { ...prev.imam, location: e.target.value }
+                          }))}
+                          placeholder="Masukkan lokasi/asal imam"
+                          className="border-gray-200 focus:ring-2 focus:ring-green-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white">
+                    Simpan Perubahan
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      case 'system':
+        return (
+          <div className="space-y-6">
+            {/* Update Notification */}
+            {updateAvailable && (
+              <Card className="shadow-lg border-blue-200 bg-blue-50">
+                <CardHeader>
+                  <CardTitle className="text-xl font-semibold text-blue-800 flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse"></div>
+                    Update Tersedia
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-blue-700 mb-4">
+                    Versi baru aplikasi tersedia. Update sekarang untuk mendapatkan fitur terbaru dan perbaikan bug.
+                  </p>
+                  <div className="flex gap-3">
+                    <Button 
+                      onClick={applyUpdate}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Update Sekarang
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={checkForUpdates}
+                      disabled={versionLoading}
+                    >
+                      {versionLoading ? 'Checking...' : 'Check Update'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* System Information */}
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold text-gray-800">Informasi System</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Versi Aplikasi</label>
+                    <div className="p-2 bg-gray-50 rounded border text-sm">
+                      {currentVersion.version}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Git Hash</label>
+                    <div className="p-2 bg-gray-50 rounded border text-sm font-mono">
+                      {currentVersion.gitHash}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Build Time</label>
+                    <div className="p-2 bg-gray-50 rounded border text-sm">
+                      {new Date(currentVersion.buildTime).toLocaleString('id-ID')}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Branch</label>
+                    <div className="p-2 bg-gray-50 rounded border text-sm">
+                      {currentVersion.gitBranch}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-200">
+                  <h3 className="text-lg font-medium text-gray-800 mb-3">Actions</h3>
+                  <div className="flex flex-wrap gap-3">
+                    <Button 
+                      variant="outline"
+                      onClick={checkForUpdates}
+                      disabled={versionLoading}
+                      className="flex items-center gap-2"
+                    >
+                      {versionLoading ? (
+                        <div className="w-4 h-4 rounded-full border-2 border-gray-300 border-t-gray-600 animate-spin"></div>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      )}
+                      Check Update
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => window.location.reload()}
+                      className="flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Refresh App
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      onClick={() => {
+                        if (confirm('Clear cache akan menghapus semua data tersimpan sementara. Lanjutkan?')) {
+                          localStorage.clear();
+                          sessionStorage.clear();
+                          window.location.reload();
+                        }
+                      }}
+                      className="flex items-center gap-2 text-red-600 hover:text-red-700"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Clear Cache
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        );
       default:
         return null;
     }
@@ -640,8 +888,22 @@ export default function AdminPageContent() {
       <nav className="bg-white shadow-md">
         <div className="container mx-auto px-4">
           <div className="flex flex-col sm:flex-row items-center justify-between py-4 sm:h-16">
-            <div className="flex items-center w-full sm:w-auto justify-center sm:justify-start mb-4 sm:mb-0">
+            <div className="flex items-center w-full sm:w-auto justify-center sm:justify-start mb-4 sm:mb-0 relative">
               <h1 className="text-xl font-bold text-gray-800">ساعة المسجد</h1>
+              {/* Network Status Indicator */}
+              {!isOnline && (
+                <div className="ml-3 bg-red-500/90 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
+                  <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+                  Offline
+                </div>
+              )}
+              {/* Update Available Indicator */}
+              {updateAvailable && (
+                <div className="ml-3 bg-blue-500/90 text-white px-2 py-1 rounded text-xs flex items-center gap-1">
+                  <div className="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+                  Update Tersedia
+                </div>
+              )}
             </div>
             <div className="flex flex-wrap justify-center w-full sm:w-auto gap-2 items-center">
               <Button
@@ -680,6 +942,17 @@ export default function AdminPageContent() {
               <Button
                 variant="ghost"
                 className={`px-3 py-1.5 rounded-md transition-colors ${
+                  activeTab === 'staff' 
+                    ? 'bg-green-50 text-green-600' 
+                    : 'text-gray-600 hover:bg-gray-50'
+                }`}
+                onClick={() => setActiveTab('staff')}
+              >
+                Petugas
+              </Button>
+              <Button
+                variant="ghost"
+                className={`px-3 py-1.5 rounded-md transition-colors ${
                   activeTab === 'pengaturan' 
                     ? 'bg-green-50 text-green-600' 
                     : 'text-gray-600 hover:bg-gray-50'
@@ -687,6 +960,20 @@ export default function AdminPageContent() {
                 onClick={() => setActiveTab('pengaturan')}
               >
                 Pengaturan
+              </Button>
+              <Button
+                variant="ghost"
+                className={`px-3 py-1.5 rounded-md transition-colors ${
+                  activeTab === 'system' 
+                    ? 'bg-green-50 text-green-600' 
+                    : 'text-gray-600 hover:bg-gray-50'
+                }`}
+                onClick={() => setActiveTab('system')}
+              >
+                System
+                {updateAvailable && (
+                  <div className="ml-1 w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                )}
               </Button>
               <div className="h-6 w-px bg-gray-200 mx-2 hidden sm:block" />
               <Button
