@@ -1,0 +1,93 @@
+{
+  "mosque": {
+    "name": "Masjid AL-Hidayah",
+    "location": "Selatpanjang",
+    "cityCode": "0405",
+    "liveStream": {
+      "title": "Masjidil Haram",
+      "description": "Live from Makkah",
+      "autoplay": true,
+      "muted": true,
+      "url": "https://www.youtube.com/embed/2Gub8-cSH9c"
+    },
+    "prayerSchedules": [
+      {
+        "prayer": "Subuh",
+        "muadzin": "",
+        "imam": ""
+      },
+      {
+        "prayer": "Dzuhur",
+        "muadzin": "Ust. Abu Fairuz",
+        "imam": ""
+      },
+      {
+        "prayer": "Ashar",
+        "muadzin": "",
+        "imam": ""
+      },
+      {
+        "prayer": "Maghrib",
+        "muadzin": "",
+        "imam": ""
+      },
+      {
+        "prayer": "Isya",
+        "muadzin": "",
+        "imam": ""
+      }
+    ]
+  },
+  "settings": {
+    "theme": "light",
+    "announcements": [
+      {
+        "id": 1,
+        "text": "Kajian Ba'da Magrib",
+        "description": "Kajian Kitab Riyadhus Shalihin - Bab Keutamaan Sabar",
+        "ustadz": "Ustadz Ahmad Firdaus",
+        "schedule": "Setiap Senin Ba'da Magrib",
+        "isActive": true
+      },
+      {
+        "id": 2,
+        "text": "Kajian Subuh",
+        "description": "Kajian Tafsir Al-Quran - Surat Al-Kahfi",
+        "ustadz": "Ustadz Muhammad Hafiz",
+        "schedule": "Setiap Ahad Ba'da Subuh",
+        "isActive": false
+      },
+      {
+        "id": 3,
+        "text": "Tahsin Al-Quran",
+        "description": "Belajar membaca Al-Quran dengan tajwid yang benar",
+        "ustadz": "Ustadz Abdul Rahman",
+        "schedule": "Setiap Rabu Ba'da Isya",
+        "isActive": false
+      },
+      {
+        "id": 4,
+        "text": "Kajian Muslimah",
+        "description": "Kajian Fiqih Wanita",
+        "ustadz": "Ustadzah Aisyah",
+        "schedule": "Setiap Sabtu 09:00",
+        "isActive": false
+      },
+      {
+        "text": "Nobis similique et e",
+        "description": "Et ipsum obcaecati e",
+        "ustadz": "Asperiores dignissim",
+        "schedule": "Est quam est possimu",
+        "isActive": false,
+        "id": "1745018986458"
+      }
+    ],
+    "prayerTimeAdjustments": {
+      "fajr": 0,
+      "dhuhr": 0,
+      "asr": 0,
+      "maghrib": 0,
+      "isha": 0
+    }
+  }
+}

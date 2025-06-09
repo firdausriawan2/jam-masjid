@@ -1,0 +1,4 @@
+f1eb27a9c76800831fa25dac64f669613bb60bed444fe4c0aa920322393447d2  jam-masjid-installer.tar.gz
+f1eb27a9c76800831fa25dac64f669613bb60bed444fe4c0aa920322393447d2  jam-masjid-installer-v1.0.0.tar.gz
+e87ecba0e35c2b36a52d148ab922bf830ece8a9609114014ac4976068d54e9fd  jam-masjid-linux.tar.gz
+e87ecba0e35c2b36a52d148ab922bf830ece8a9609114014ac4976068d54e9fd  jam-masjid-linux-v1.0.0.tar.gz
